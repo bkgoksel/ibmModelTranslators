@@ -23,20 +23,27 @@ public class PMIAligner implements WordAligner {
   private CounterMap<String,String> sourceTargetCounter;
 
   public Alignment align(SentencePair sentencePair) {
-    // Placeholder code below. 
-    // TODO Implement an inference algorithm for Eq.1 in the assignment
-    // handout to predict alignments based on the counts you collected with train().
     Alignment alignment = new Alignment();
     List<String> sourceSentence = sentencePair.getSourceWords();
     List<String> targetSentence = sentencePair.getTargetWords();
     for (int s = 0; s < sourceSentence.size(); s++) {
+      String sourceWord = sourceSentence.get(s);
+      double sourceProbability = wordSourceCounter.getCount(sourceWord);
       int bestTarget = 0;
-      double bestScore = 0.0;
+      double bestScore = Double.NEGATIVE_INFINITY; // TODO: Make Sure this works
       for (int t = 0; t < targetSentence.size(); t++) {
-        double score = 
+        String targetWord = targetSentence.get(t);
+        double targetProbability = wordTargetCounter.getCount(targetWord);
+        double sourceTargetProbability = sourceTargetCounter.getCount(sourceWord, targetWord);
+        double score = Math.log(sourceTargetProbability) - (Math.log(sourceProbability) + Math.log(targetProbability));
+        if (score >= bestScore) {
+          bestScore = score;
+          bestTarget = t;
+        }
       }
+      // At this point the source word at index s is best aligned to the target word at index bestTarget.
+      alignment.addGoldAlignment(bestTarget, s, true);
     }
-   
     return alignment;
   }
 
